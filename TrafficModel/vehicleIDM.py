@@ -24,11 +24,13 @@ class vehicle():
         self.FlowFlag=0
         self.vehicle_length=vehicle_length
         self.vehicleType = vehicleType
+        self.delay = 0
    
         
         
     def step(self,Signal,GlobalTime,FileName,next_car_pos,next_car_speed):  # gets called for each object
         self.FlowFlag=0
+        self.delay+=1
         if Signal=="Green" and next_car_pos==self.TrackLength: #value is hardcoded now
             accel = self.a
         else:
@@ -63,5 +65,6 @@ class vehicle():
     def setSpeed(self,speed):
         self.speed=speed
 
-
+    def getDelay(self):
+        return self.delay
         

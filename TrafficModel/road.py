@@ -100,13 +100,20 @@ class Road():
 			NextVehicle = 2
 
 		interArrTime=random.expovariate(float(self.Vehicle[NextVehicle][4]))   ##bounds need to be set
-		print self.Signal,NextVehicle,interArrTime
+		#print self.Signal,NextVehicle,interArrTime
 		return [NextVehicle,interArrTime]
 			
 
 
 	def getNoOfVehicles(self):
+		print self.NumCars
 		return self.NumCars
+
+	def getRoadDelay(self):
+		delay=0
+		for vehicle in self.Traffic:
+			delay += vehicle.getDelay()
+		return delay
 
 
 

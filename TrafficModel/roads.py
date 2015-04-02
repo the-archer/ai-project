@@ -20,6 +20,25 @@ class Roads():
 	def getCurrentState(self):
 		state = ()
 		for road in self.roads:
-			state += (road.getNoOfVehicles(), )
+			no_of_vehicles = road.getNoOfVehicles()
+			if no_of_vehicles<50:
+				st = no_of_vehicles/5
+			else:
+				st = 10
+			state += (st, )
 
 		return state
+
+	def updateSignals(self, signal):
+		for i in range(0, len(self.roads)):
+			if signal[i]==0:
+				self.roads[i].Signal="Red"
+			else:
+				self.roads[i].Signal="Green"
+		return
+
+	def getTotalDelay(self):
+		delay=0
+		for road in self.roads:
+			delay += road.getRoadDelay()
+		return delay
