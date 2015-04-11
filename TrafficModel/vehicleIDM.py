@@ -66,5 +66,5 @@ class vehicle():
         self.speed=speed
 
     def getDelay(self):
-        return self.delay
+        return (self.delay*self.delay)
         

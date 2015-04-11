@@ -21,10 +21,11 @@ class Roads():
 		state = ()
 		for road in self.roads:
 			no_of_vehicles = road.getNoOfVehicles()
-			if no_of_vehicles<100:
-				st = no_of_vehicles/5
+			print (no_of_vehicles)
+			if no_of_vehicles<50:
+				st = no_of_vehicles/10
 			else:
-				st = 20
+				st = 5
 			state += (st, )
 
 		return state

@@ -11,6 +11,7 @@
 #from featureExtractors import *
 
 import random,util,math,sys
+from pprint import pprint
 
 class QLearningAgent():
 	"""
@@ -58,6 +59,7 @@ class QLearningAgent():
 
 		"""
 		self.Qval = AutoVivification() #implements dictionary of dictionaries
+		self.Visited = AutoVivification()
 		self.MaxTime = 30 
 		#self.epsilon = 1
 		self.alpha = alpha
@@ -142,6 +144,9 @@ class QLearningAgent():
 		legalActions = self.getLegalActions()
 		r = random.random()
 		epsilon = self.getEpsilonValue()
+		f1=open("eps.txt", "a")
+		f1.write(str(epsilon)+"\n")
+		f1.close()
 		print ("epsilon  = " + str(epsilon))
 		if r < epsilon:
 			#print r, epsilon
@@ -175,7 +180,7 @@ class QLearningAgent():
 	def useSoftMax(self, state, legalActions, T):
 
 		
-		print ("Temp = " + str(T))
+		
 		r = random.random()
 		current = 0.0
 		total = 0.0
@@ -185,7 +190,7 @@ class QLearningAgent():
 				total += math.exp(-1*(self.getQValue(state, action))/T)
 				#print total
 
-			print self.Qval[state]
+			#print self.Qval[state]
 			for action in self.Qval[state]:
 				current += math.exp(-1*(self.getQValue(state, action))/T)
 				if r <= (current/total):
@@ -199,14 +204,15 @@ class QLearningAgent():
 
 
 	def getAnnealingTemp(self):
-		beta = 0.99
+		beta = 0.995
+		print ("Temp = " + str(self.temperature))
 		self.temperature = beta*self.temperature
 		if (self.temperature < 0.5):
 		 	self.temperature = 0.5
 		return self.temperature
 
 
-	def update(self, state, action, nextState, reward):
+	def update(self, state, action, nextState, reward, save):
 		"""
 			The parent class calls this to observe a
 			state = action => nextState and reward transition.
@@ -223,10 +229,21 @@ class QLearningAgent():
 		else:
 			self.Qval[state][action] = self.initialQValue
 		inc = self.alpha*(reward + self.gamma*self.getMinValue(nextState) - oldval)
-
+		if state in self.Visited and action in self.Visited[state]:
+			self.Visited[state][action] += 1
+		else:
+			self.Visited[state][action] = 0
 		self.Qval[state][action] += inc
+		if (save):
+			f2=open("qval.txt", "w")
+			pprint(self.Qval, stream = f2)
 
-		print self.Qval
+			#f2.write("\n------------\n")
+			#f2.write(str(self.Visited))
+			pprint(self.Visited, stream = f2)
+			f2.close()
+			#a = raw_input()
+		#print self.Qval
 
 	def getLegalActions(self):
 		actions=[]
@@ -238,7 +255,8 @@ class QLearningAgent():
 				else:
 					f += (0,)
 			for t in range(1, self.MaxTime+1):
-				actions.append((f, t))
+				if t%5==0:
+					actions.append((f, t))
 		return actions
 
 
