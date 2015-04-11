@@ -33,7 +33,7 @@ class QLearningAgent():
 				which returns legal actions
 				for a state
 	"""
-	def __init__(self, epsilon, alpha, gamma, no_of_roads):
+	def __init__(self, epsilon, alpha, gamma, no_of_roads, initial_temp, initialQValue):
 		"You can initialize Q-values here..."
 		#ReinforcementAgent.__init__(self, **args)
 
@@ -58,17 +58,19 @@ class QLearningAgent():
 
 		"""
 		self.Qval = AutoVivification() #implements dictionary of dictionaries
-		self.MaxTime = 20 
+		self.MaxTime = 60 
 		self.epsilon = epsilon
 		self.alpha = alpha
 		self.gamma = gamma
-		self.no_of_roads=no_of_roads
+		self.no_of_roads = no_of_roads
+		self.temperature = initial_temp
+		self.initialQValue = initialQValue
 
 
 	def getQValue(self, state, action):
 		"""
 			Returns Q(state,action)
-			Should return 0.0 if we never seen
+			Should return initialQValue if we have never seen
 			a state or (state,action) tuple
 		"""
 		"*** YOUR CODE HERE ***"
@@ -77,11 +79,11 @@ class QLearningAgent():
 		if state in self.Qval and action in self.Qval[state]:
 			return self.Qval[state][action]
 		else:
-			return 0.0
+			return self.initialQValue
 			
 			
 
-	def getValue(self, state):
+	def getMinValue(self, state):
 
 		"""
 			Returns min_action Q(state,action)
@@ -99,13 +101,13 @@ class QLearningAgent():
 					minval=self.Qval[state][t]
 			return minval
 		else:
-			return 0.0
+			return self.initialQValue
 
 
 
 
 		
-	def getPolicy(self, state):
+	def getBestPolicy(self, state):
 		"""
 			Compute the best action to take in a state.  Note that if there
 			are no legal actions, which is the case at the terminal state,
@@ -123,7 +125,7 @@ class QLearningAgent():
 			return None
 	
 
-	def getAction(self, state):
+	def getAction(self, state, algo):
 		"""
 			Compute the action to take in the current state.  With
 			probability self.epsilon, we should take a random action and
@@ -137,15 +139,44 @@ class QLearningAgent():
 		# Pick Action
 		legalActions = self.getLegalActions()
 		action = None
+		if algo==0:
+			return useGreedyEpsilon(state, legalActions)
+		elif algo==1:
+			return useSoftMax(state, legalActions)
 		"*** YOUR CODE HERE ***"
+		
+	def useGreedyEpsilon(self, state, legalActions):
+
 		r = random.random()
 		if r<self.epsilon:
 			action = random.choice(legalActions)
 		else:
-			action=self.getPolicy(state)
+			action=self.getBestPolicy(state)
 		if action == None:
 			action = random.choice(legalActions)
 		return action
+
+	def useSoftMax(self, state, legalActions):
+
+		T = getAnnealingTemp()
+		r = random.random()
+		current = 0.0
+		total = 0.0 
+		for action in legalActions:
+			total += math.exp(-1*(getQValue(state, action))/T)
+		for action in legalActions:
+			current += math.exp(-1*(getQValue(state, action))/T)
+			if r < (current/total):
+				return action
+
+
+
+
+	def getAnnealingTemp(self):
+		beta = 0.97
+		self.temperature = beta*self.temperature
+		return self.temperature
+
 
 	def update(self, state, action, nextState, reward):
 		"""
@@ -158,12 +189,12 @@ class QLearningAgent():
 		"""
 		"*** YOUR CODE HERE ***"
 		#print nextState, self.Qval
-		oldval = 0.0
+		oldval = self.initialQValue
 		if state in self.Qval and action in self.Qval[state]:
 			oldval = self.Qval[state][action]
 		else:
-			self.Qval[state][action]=0
-		inc = self.alpha*(reward + self.gamma*self.getValue(nextState) - oldval)
+			self.Qval[state][action] = self.initialQValue
+		inc = self.alpha*(reward + self.gamma*self.getMinValue(nextState) - oldval)
 
 		self.Qval[state][action] += inc
 
@@ -180,41 +211,6 @@ class QLearningAgent():
 				actions.append((f, t))
 		return actions
 
-
-
-
-		
-
-# class PacmanQAgent(QLearningAgent):
-# 	"Exactly the same as QLearningAgent, but with different default parameters"
-
-# 	def __init__(self, epsilon=0.5,gamma=0.8,alpha=0.2, numTraining=0, **args):
-# 		"""
-# 		These default parameters can be changed from the pacman.py command line.
-# 		For example, to change the exploration rate, try:
-# 				python pacman.py -p PacmanQLearningAgent -a epsilon=0.1
-
-# 		alpha    - learning rate
-# 		epsilon  - exploration rate
-# 		gamma    - discount factor
-# 		numTraining - number of training episodes, i.e. no learning after these many episodes
-# 		"""
-# 		args['epsilon'] = epsilon
-# 		args['gamma'] = gamma
-# 		args['alpha'] = alpha
-# 		args['numTraining'] = numTraining
-# 		self.index = 0  # This is always Pacman
-# 		QLearningAgent.__init__(self, **args)
-
-# 	def getAction(self, state):
-# 		"""
-# 		Simply calls the getAction method of QLearningAgent and then
-# 		informs parent of action for Pacman.  Do not change or remove this
-# 		method.
-# 		"""
-# 		action = QLearningAgent.getAction(self,state)
-# 		self.doAction(state,action)
-# 		return action
 
 
 class AutoVivification(dict):

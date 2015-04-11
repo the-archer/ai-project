@@ -139,7 +139,7 @@ class QLearningAgent():
 		"*** YOUR CODE HERE ***"
 		r = random.random()
 		if r<self.epsilon:
-			action - random.choice(legalActions)
+			action = random.choice(legalActions)
 		else:
 			action=self.getPolicy(state)
 		return action

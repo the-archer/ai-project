@@ -8,27 +8,27 @@ def main(TimeToSimulate,TStep):
 		wrtFile2= open("road2.csv",'w')
 		#specsFile1 = open("road1_specs.csv",'rb')
 		#specsFile2 = open("road2_specs.csv",'rb')
-		roads = Roads([[wrtFile1,TStep,30,"road1_specs.csv","Red"],[wrtFile2,TStep,30,"road2_specs.csv","Green"]])
+		roads = Roads([[wrtFile1,TStep,500,"road1_specs.csv","Red"],[wrtFile2,TStep,500,"road2_specs.csv","Green"]])
 		NumIterations = int(TimeToSimulate*(1/TStep))
 		gamma = 0.8 
 		alpha = 0.2 
 		epsilon = 0.5 # Have to make it variable
 		no_of_roads = 2
-		a = qlearningAgents.QLearningAgent(epsilon, alpha, gamma, no_of_roads)
+		a = qlearningAgents.QLearningAgent(epsilon, alpha, gamma, no_of_roads, initial_temp = 20, initialQValue = -1000)
 		oldstate = ()
 		newstate = (0, 0)
-		action = a.getAction(newstate)
+		action = a.getAction(newstate, algo = 1)
 		oldstate = newstate
 		timeToCallQL=action[1]
 		roads.updateSignals(action[0])
 		penalty=0							
 		for itr in range(NumIterations):
-			print action
+			print ("Action = " + str(action))
 			if(timeToCallQL==0):
 				newstate = roads.getCurrentState()
-				print newstate				  
+				print ("State = " + str(state))				  
 				a.update(oldstate, action, newstate, penalty)
-				action = a.getAction(newstate)
+				action = a.getAction(newstate, algo = 1)
 				oldstate = newstate
 				penalty=0
 				timeToCallQL = action[1]
@@ -45,4 +45,4 @@ def main(TimeToSimulate,TStep):
 		#specsFile2.close()
 
 
-main(1000,0.25) #input value
+main(60*60,0.25) #input value
