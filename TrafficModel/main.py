@@ -14,7 +14,7 @@ def main(TimeToSimulate,TStep):
 		alpha = 0.2 
 		epsilon = 0.5 # Have to make it variable
 		no_of_roads = 2
-		a = qlearningAgents.QLearningAgent(epsilon, alpha, gamma, no_of_roads, initial_temp = 1000.0, initialQValue = -100.0)
+		a = qlearningAgents.QLearningAgent( alpha, gamma, no_of_roads, initial_temp = 1000.0, initialQValue = 0.0)
 		oldstate = ()
 		newstate = (0, 0)
 		action = a.getAction(newstate, algo = 1)
@@ -27,6 +27,7 @@ def main(TimeToSimulate,TStep):
 		
 
 			if(timeToCallQL==0):
+				print (" ")
 				print ("Time = " +  str(itr*TStep))	
 				newstate = roads.getCurrentState()
 				print ("State = " + str(newstate))

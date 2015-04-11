@@ -33,7 +33,7 @@ class QLearningAgent():
 				which returns legal actions
 				for a state
 	"""
-	def __init__(self, epsilon, alpha, gamma, no_of_roads, initial_temp, initialQValue):
+	def __init__(self, alpha, gamma, no_of_roads, initial_temp, initialQValue):
 		"You can initialize Q-values here..."
 		#ReinforcementAgent.__init__(self, **args)
 
@@ -58,11 +58,12 @@ class QLearningAgent():
 
 		"""
 		self.Qval = AutoVivification() #implements dictionary of dictionaries
-		self.MaxTime = 60 
-		self.epsilon = epsilon
+		self.MaxTime = 30 
+		#self.epsilon = 1
 		self.alpha = alpha
 		self.gamma = gamma
 		self.no_of_roads = no_of_roads
+		self.initial_temp = initial_temp
 		self.temperature = initial_temp
 		self.initialQValue = initialQValue
 
@@ -137,50 +138,71 @@ class QLearningAgent():
 			HINT: To pick randomly from a list, use random.choice(list)
 		"""
 		# Pick Action
+		T = self.getAnnealingTemp()
 		legalActions = self.getLegalActions()
-		action = None
-		if algo==0:
-			return self.useGreedyEpsilon(state, legalActions)
-		elif algo==1:
-			return self.useSoftMax(state, legalActions)
-		"*** YOUR CODE HERE ***"
-		
+		r = random.random()
+		epsilon = self.getEpsilonValue()
+		print ("epsilon  = " + str(epsilon))
+		if r < epsilon:
+			#print r, epsilon
+			#print legalActions
+			return random.choice(legalActions)
+		else:		
+			if algo==0:
+				return self.useGreedyEpsilon(state, legalActions)
+			elif algo==1:
+				return self.useSoftMax(state, legalActions, T)
+	
+
+
+	def getEpsilonValue(self):
+
+		#=EXP(-1/(A1))/EXP(-1/(100))
+
+		return (math.exp(-1/self.temperature)/math.exp(-1/self.initial_temp))
+
+
+
 	def useGreedyEpsilon(self, state, legalActions):
 
-		r = random.random()
-		if r<self.epsilon:
-			action = random.choice(legalActions)
-		else:
-			action=self.getBestPolicy(state)
+		
+		action = self.getBestPolicy(state)
 		if action == None:
 			action = random.choice(legalActions)
 		return action
 
-	def useSoftMax(self, state, legalActions):
 
-		T = self.getAnnealingTemp()
+	def useSoftMax(self, state, legalActions, T):
+
+		
 		print ("Temp = " + str(T))
 		r = random.random()
 		current = 0.0
-		total = 0.0 
-		for action in legalActions:
-			#print self.getQValue(state, action)
-			#print total
-			total += math.exp(-1*(self.getQValue(state, action))/T)
-		for action in legalActions:
-			current += math.exp(-1*(self.getQValue(state, action))/T)
-			if r < (current/total):
-				return action
-		return legalActions[len(legalActions)-1]
+		total = 0.0
+
+		if state in self.Qval:
+			for action in self.Qval[state]:
+				total += math.exp(-1*(self.getQValue(state, action))/T)
+				#print total
+
+			print self.Qval[state]
+			for action in self.Qval[state]:
+				current += math.exp(-1*(self.getQValue(state, action))/T)
+				if r <= (current/total):
+					return action	
+			
+		
+		return random.choice(legalActions) 
+		
 
 
 
 
 	def getAnnealingTemp(self):
-		beta = 0.98
+		beta = 0.99
 		self.temperature = beta*self.temperature
-		if (self.temperature < 1):
-			self.temperature = 1
+		if (self.temperature < 0.5):
+		 	self.temperature = 0.5
 		return self.temperature
 
 
@@ -204,7 +226,7 @@ class QLearningAgent():
 
 		self.Qval[state][action] += inc
 
-		#print self.Qval
+		print self.Qval
 
 	def getLegalActions(self):
 		actions=[]
