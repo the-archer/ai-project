@@ -14,21 +14,26 @@ def main(TimeToSimulate,TStep):
 		alpha = 0.2 
 		epsilon = 0.5 # Have to make it variable
 		no_of_roads = 2
-		a = qlearningAgents.QLearningAgent(epsilon, alpha, gamma, no_of_roads, initial_temp = 20, initialQValue = -1000)
+		a = qlearningAgents.QLearningAgent(epsilon, alpha, gamma, no_of_roads, initial_temp = 1000.0, initialQValue = -100.0)
 		oldstate = ()
 		newstate = (0, 0)
 		action = a.getAction(newstate, algo = 1)
+		print ("Action = " + str(action))
 		oldstate = newstate
 		timeToCallQL=action[1]
 		roads.updateSignals(action[0])
 		penalty=0							
 		for itr in range(NumIterations):
-			print ("Action = " + str(action))
+		
+
 			if(timeToCallQL==0):
+				print ("Time = " +  str(itr*TStep))	
 				newstate = roads.getCurrentState()
-				print ("State = " + str(state))				  
+				print ("State = " + str(newstate))
+				print ("Penalty = " + str(penalty))				  
 				a.update(oldstate, action, newstate, penalty)
 				action = a.getAction(newstate, algo = 1)
+				print ("Action = " + str(action))
 				oldstate = newstate
 				penalty=0
 				timeToCallQL = action[1]
@@ -36,13 +41,14 @@ def main(TimeToSimulate,TStep):
 
 			Time = itr*TStep
 			roads.UpdateRoads(Time)
-			penalty += roads.getTotalDelay()
+			penalty += (roads.getTotalDelay()*TStep/10000)
 			#roads.SignalCheck(itr)  #needs to change for Qlearning
 			timeToCallQL-=1
 		wrtFile1.close()
 		wrtFile2.close()
 		#specsFile1.close()
 		#specsFile2.close()
+
 
 
 main(60*60,0.25) #input value

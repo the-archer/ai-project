@@ -94,7 +94,7 @@ class QLearningAgent():
 		"""
 		"*** YOUR CODE HERE ***"
 		minval=sys.maxsize
-		legalActions = self.getLegalActions()
+		#legalActions = self.getLegalActions()
 		if state in self.Qval:
 			for t in self.Qval[state]:
 				if self.Qval[state][t]< minval:
@@ -140,9 +140,9 @@ class QLearningAgent():
 		legalActions = self.getLegalActions()
 		action = None
 		if algo==0:
-			return useGreedyEpsilon(state, legalActions)
+			return self.useGreedyEpsilon(state, legalActions)
 		elif algo==1:
-			return useSoftMax(state, legalActions)
+			return self.useSoftMax(state, legalActions)
 		"*** YOUR CODE HERE ***"
 		
 	def useGreedyEpsilon(self, state, legalActions):
@@ -158,23 +158,29 @@ class QLearningAgent():
 
 	def useSoftMax(self, state, legalActions):
 
-		T = getAnnealingTemp()
+		T = self.getAnnealingTemp()
+		print ("Temp = " + str(T))
 		r = random.random()
 		current = 0.0
 		total = 0.0 
 		for action in legalActions:
-			total += math.exp(-1*(getQValue(state, action))/T)
+			#print self.getQValue(state, action)
+			#print total
+			total += math.exp(-1*(self.getQValue(state, action))/T)
 		for action in legalActions:
-			current += math.exp(-1*(getQValue(state, action))/T)
+			current += math.exp(-1*(self.getQValue(state, action))/T)
 			if r < (current/total):
 				return action
+		return legalActions[len(legalActions)-1]
 
 
 
 
 	def getAnnealingTemp(self):
-		beta = 0.97
+		beta = 0.98
 		self.temperature = beta*self.temperature
+		if (self.temperature < 1):
+			self.temperature = 1
 		return self.temperature
 
 
@@ -197,6 +203,8 @@ class QLearningAgent():
 		inc = self.alpha*(reward + self.gamma*self.getMinValue(nextState) - oldval)
 
 		self.Qval[state][action] += inc
+
+		#print self.Qval
 
 	def getLegalActions(self):
 		actions=[]

@@ -106,7 +106,7 @@ class Road():
 
 
 	def getNoOfVehicles(self):
-		print self.NumCars
+		#print self.NumCars
 		return self.NumCars
 
 	def getRoadDelay(self):
