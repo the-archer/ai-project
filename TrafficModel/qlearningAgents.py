@@ -7,8 +7,7 @@
 # For more info, see http://inst.eecs.berkeley.edu/~cs188/sp09/pacman.html
 
 
-#from learningAgents import ReinforcementAgent
-#from featureExtractors import *
+
 
 import random,util,math,sys
 from pprint import pprint
@@ -34,7 +33,7 @@ class QLearningAgent():
 				which returns legal actions
 				for a state
 	"""
-	def __init__(self, alpha, gamma, no_of_roads, initial_temp, initialQValue):
+	def __init__(self, gamma, no_of_roads, initial_temp, initialQValue):
 		"You can initialize Q-values here..."
 		#ReinforcementAgent.__init__(self, **args)
 
@@ -62,7 +61,7 @@ class QLearningAgent():
 		self.Visited = AutoVivification()
 		self.MaxTime = 30 
 		#self.epsilon = 1
-		self.alpha = alpha
+		#self.alpha = alpha
 		self.gamma = gamma
 		self.no_of_roads = no_of_roads
 		self.initial_temp = initial_temp
@@ -190,12 +189,13 @@ class QLearningAgent():
 				total += math.exp(-1*(self.getQValue(state, action))/T)
 				#print total
 
+			if total > 0:
 			#print self.Qval[state]
-			for action in self.Qval[state]:
-				current += math.exp(-1*(self.getQValue(state, action))/T)
-				if r <= (current/total):
-					return action	
-			
+				for action in self.Qval[state]:
+					current += math.exp(-1*(self.getQValue(state, action))/T)
+					if r <= (current/total):
+						return action	
+				
 		
 		return random.choice(legalActions) 
 		
@@ -223,12 +223,14 @@ class QLearningAgent():
 		"""
 		"*** YOUR CODE HERE ***"
 		#print nextState, self.Qval
+		alpha = self.temperature/self.initial_temp
+		print ("Alpha = " + str(alpha))
 		oldval = self.initialQValue
 		if state in self.Qval and action in self.Qval[state]:
 			oldval = self.Qval[state][action]
 		else:
 			self.Qval[state][action] = self.initialQValue
-		inc = self.alpha*(reward + self.gamma*self.getMinValue(nextState) - oldval)
+		inc = alpha*(reward + self.gamma*self.getMinValue(nextState) - oldval)
 		if state in self.Visited and action in self.Visited[state]:
 			self.Visited[state][action] += 1
 		else:

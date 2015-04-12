@@ -5,9 +5,10 @@ import random
 import os
 import sys
 import csv
+import math
 
 class Road():
-	def __init__(self,FileName,Tstep,RoadLength,SpecsFile,signal):
+	def __init__(self,FileName,Tstep,RoadLength,SpecsFile,signal, start_time_hour, start_time_min, start_time_sec, static):
 		self.Tstep = Tstep
 		self.RoadLength = RoadLength
 		self.NumCars= 0
@@ -20,16 +21,19 @@ class Road():
 		self.LastCarPassed=True
 		self.CheckNextVehicleTime = 0
 		self.Signal = signal
-		
-		with open(SpecsFile, 'rb') as csvfile:              # file: Type Speedlimit a b prob mean sd
+		self.start_time = start_time_hour*60*60 + start_time_min*60 + start_time_sec
+		self.static = static
+
+		with open(SpecsFile, 'rb') as csvfile:              # file: Type Speedlimit acc deceleration prob_k1 sin_a sin_b sin_c
+                                                                     #   where 1/lambda = a*sin(bt) + c
 				file = csv.reader(csvfile, delimiter=',')
 				for row in file:
-					for i in range(1,7):
+					for i in range(1,len(row)):
 						if row[0]=="Car": self.Vehicle[0].append(float(row[i]))
 						elif row[0]=="Auto": self.Vehicle[1].append(float(row[i]))
 						elif row[0]=="Bus": self.Vehicle[2].append(float(row[i]))
-
-		NextVehicleInfo = self.GenerateVehicle()
+		
+		NextVehicleInfo = self.GenerateVehicle(time_now = self.start_time)
 		self.NextVehicle=NextVehicleInfo[0]
 		self.NextVehicleTime = NextVehicleInfo[1]
 
@@ -50,7 +54,7 @@ class Road():
 					self.CheckNextVehicleTime = 0
 					self.LastCarPassed = False
 					self.AddVehicle()
-					NextVehicleInfo = self.GenerateVehicle()
+					NextVehicleInfo = self.GenerateVehicle(time_now = self.start_time + (CurTime))
 					self.NextVehicle=NextVehicleInfo[0]
 					self.NextVehicleTime = NextVehicleInfo[1]
 
@@ -88,21 +92,46 @@ class Road():
 						break
 
 
-	def GenerateVehicle(self):
-		rnd = random.uniform(0,1)
+	def GenerateVehicle(self,time_now):
+		if self.static:
+			rnd = random.uniform(0,1)
 
-		if rnd < self.Vehicle[0][3] :
-			NextVehicle = 0      
-			
-		elif rnd < self.Vehicle[0][3]+ self.Vehicle[1][3]:
-			NextVehicle = 1
+			if rnd < self.Vehicle[0][3] :
+				NextVehicle = 0      
+				
+			elif rnd < self.Vehicle[0][3]+ self.Vehicle[1][3]:
+				NextVehicle = 1
+			else:
+				NextVehicle = 2
+
+			interArrTime=random.expovariate(float((1+0.0)/self.Vehicle[NextVehicle][4]))   ##bounds need to be set
+			#print interArrTime
+			#print self.Signal,NextVehicle,interArrTime
+			return [NextVehicle,interArrTime]
 		else:
-			NextVehicle = 2
+			rnd = random.uniform(0,1)
+			p1 = math.sin(self.Vehicle[0][3]* time_now)+1
+			p2 = math.sin(self.Vehicle[1][3]* time_now)+1
+			p3 = math.sin(self.Vehicle[2][3]* time_now)+1
+			sum_p = p1+p2+p3
+			p1 = (p1+0.0)/sum_p
+			p2 = (p2+0.0)/sum_p
+			p3 = (p3+0.0)/sum_p
+	                
+			if rnd < p1 :
+				NextVehicle = 0      
+				
+			elif rnd < p1+ p2:
+				NextVehicle = 1
+			else:
+				NextVehicle = 2
 
-		interArrTime=random.expovariate(float(self.Vehicle[NextVehicle][4]))   ##bounds need to be set
-		#print self.Signal,NextVehicle,interArrTime
-		return [NextVehicle,interArrTime]
-			
+			meanInterArr = self.Vehicle[NextVehicle][4] * math.sin (self.Vehicle[NextVehicle][5]*time_now) + self.Vehicle[NextVehicle][6]
+			#print meanInterArr
+			#print float((1+0.0)/meanInterArr)
+			interArrTime=random.expovariate(float((1+0.0)/meanInterArr))   ##bounds need to be set
+			#print self.Signal,NextVehicle,interArrTime
+			return [NextVehicle,interArrTime]
 
 
 	def getNoOfVehicles(self):
@@ -114,6 +143,8 @@ class Road():
 		for vehicle in self.Traffic:
 			delay += vehicle.getDelay()
 		return delay
+
+
 
 
 
