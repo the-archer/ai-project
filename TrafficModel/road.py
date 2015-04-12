@@ -127,9 +127,14 @@ class Road():
 				NextVehicle = 2
 
 			meanInterArr = self.Vehicle[NextVehicle][4] * math.sin (self.Vehicle[NextVehicle][5]*time_now) + self.Vehicle[NextVehicle][6]
-			#print meanInterArr
-			#print float((1+0.0)/meanInterArr)
 			interArrTime=random.expovariate(float((1+0.0)/meanInterArr))   ##bounds need to be set
+			if self.RoadLength==1001:
+				f=open("sineval.txt", "a")
+				f.write(str(time_now) + "," + str(interArrTime)+"\n")
+				f.close()
+				#print meanInterArr
+			#print float((1+0.0)/meanInterArr)
+			
 			#print self.Signal,NextVehicle,interArrTime
 			return [NextVehicle,interArrTime]
 

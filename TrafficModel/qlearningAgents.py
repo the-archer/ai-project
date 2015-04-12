@@ -11,6 +11,7 @@
 
 import random,util,math,sys
 from pprint import pprint
+from numpy import var
 
 class QLearningAgent():
 	"""
@@ -67,6 +68,9 @@ class QLearningAgent():
 		self.initial_temp = initial_temp
 		self.temperature = initial_temp
 		self.initialQValue = initialQValue
+		#self.static = static
+		self.stablized = False
+		self.varValues = []
 
 
 	def getQValue(self, state, action):
@@ -223,7 +227,8 @@ class QLearningAgent():
 		"""
 		"*** YOUR CODE HERE ***"
 		#print nextState, self.Qval
-		alpha = self.temperature/self.initial_temp
+		#alpha = self.temperature/self.initial_temp
+		alpha = self.getEpsilonValue()
 		print ("Alpha = " + str(alpha))
 		oldval = self.initialQValue
 		if state in self.Qval and action in self.Qval[state]:
@@ -260,6 +265,30 @@ class QLearningAgent():
 				if t%5==0:
 					actions.append((f, t))
 		return actions
+
+	def calculateVariance(self, delayValues, intervalLength):
+		#print intervalLength
+		variance = var(delayValues[-intervalLength:])
+		self.varValues.append(variance)
+		#print delayValues
+		return self.varValues[-1]
+			
+
+	def checkStability(self, intervalLength):
+		if self.varValues[-1] < 2000000:
+			self.stablized = True
+	
+	def checkForModelChange(self, intervalLength):
+		if self.stablized:
+
+			if self.varValues[-1] > 3000000:
+				#Model change detected
+				self.temperature = self.initial_temp/2
+				self.stablized = False
+				print "Model Change detected"
+
+
+
 
 
 
